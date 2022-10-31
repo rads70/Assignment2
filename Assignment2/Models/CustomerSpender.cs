@@ -11,6 +11,6 @@ namespace Assignment2.Models
         public int CustomerId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public double Total { get; set; }
+        public decimal Total { get; set; }
     }
 }

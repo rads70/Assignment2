@@ -13,7 +13,7 @@ namespace Assignment2.Repositories
         public List<Customer> GetAllCustomers();
         public Customer GetCustomerByName(string name);
         public List<Customer> GetCustomerPage(int limit, int offset);
-        public Customer AddCustomer (Customer customer);
+        public bool AddCustomer (Customer customer);
         public bool UpdateCustomer(int id, Customer customer);
         public List<CustomerCountry> GetAllCustomersCountry();
         public List<CustomerSpender> GetAllCustomersSpenders();
