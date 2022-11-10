@@ -1,0 +1,10 @@
+IF EXISTS(SELECT name FROM master.dbo.sysdatabases WHERE name='SuperheroesDb')
+BEGIN
+	ALTER DATABASE [SuperHeroesDb] SET OFFLINE WITH ROLLBACK IMMEDIATE;
+	ALTER DATABASE [SuperHeroesDb] SET ONLINE;
+	DROP DATABASE SuperHeroesDb;
+END
+GO
+
+CREATE DATABASE SuperHeroesDb;
+GO
