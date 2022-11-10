@@ -10,6 +10,11 @@ namespace Assignment2.Repositories
 {
     public class CustomerRepository : ICustomerRepository
     {
+        /// <summary>
+        /// Adds customer to database
+        /// </summary>
+        /// <param name="customer"></param>
+        /// <returns> bool </returns>
         public bool AddCustomer(Customer customer)
         {
             bool result = false;
@@ -45,6 +50,10 @@ namespace Assignment2.Repositories
             return result;
         }
 
+        /// <summary>
+        /// Gets all customers from database
+        /// </summary>
+        /// <returns> List of Customer </returns>
         public List<Customer> GetAllCustomers()
         {
             List<Customer> customers = new List<Customer>();
@@ -54,7 +63,6 @@ namespace Assignment2.Repositories
                 using(SqlConnection conn = new SqlConnection(ConnectionHelper.GetConnectionString()))
                 {
                     conn.Open();
-                    Console.WriteLine("Connection open \n");
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -87,6 +95,10 @@ namespace Assignment2.Repositories
             return customers;
         }
 
+        /// <summary>
+        /// Returns  all countries and amount of custmers per country ordered by amount.
+        /// </summary>
+        /// <returns> List of CustomerCountry  </returns>
         public List<CustomerCountry> GetAllCustomersCountry()
         {
             List<CustomerCountry> countries = new List<CustomerCountry>();
@@ -125,7 +137,11 @@ namespace Assignment2.Repositories
             return countries;
         }
 
-        public List<CustomerSpender> GetAllCustomersSpenders()
+        /// <summary>
+        /// Returns list of highest customer spenders
+        /// </summary>
+        /// <returns></returns>
+         public List<CustomerSpender> GetAllCustomersSpenders()
         {
             List<CustomerSpender> spenders = new List<CustomerSpender>();
             string sql = "SELECT Customer.CustomerId, FirstName, LastName, SUM(Total) as Total FROM Customer "+
@@ -167,6 +183,11 @@ namespace Assignment2.Repositories
             return spenders;
         }
 
+        /// <summary>
+        /// Gets customer by Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Customer</returns>
         public Customer GetCustomer(int id)
         {
             Customer customer = new Customer();
@@ -210,9 +231,14 @@ namespace Assignment2.Repositories
             return customer;
         }
 
+        /// <summary>
+        /// Gets customer on partial or full first name
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <returns></returns>
         public Customer GetCustomerByName(string firstName)
         {
-            firstName = firstName + "%";
+            firstName += "%";
             Customer customer = new Customer();
             string sql = "SELECT CustomerId, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer " +
                 "WHERE FirstName LIKE @FirstName";
@@ -233,7 +259,8 @@ namespace Assignment2.Repositories
                                 customer.CustomerId = reader.GetInt32(0);
                                 customer.FirstName = reader.GetString(1);
                                 customer.LastName = reader.GetString(2);
-                                customer.Country = reader.GetString(3);
+                                if(!reader.IsDBNull(3))
+                                    customer.Country = reader.GetString(3);
                                 if (!reader.IsDBNull(4))
                                     customer.PostalCode = reader.GetString(4);
                                 if (!reader.IsDBNull(5))
@@ -255,11 +282,73 @@ namespace Assignment2.Repositories
             return customer;
         }
 
-        public CustomerGenre GetCustomerGenre(int customerId)
+        /// <summary>
+        /// Get the most popular genre or genres if equal for a given customer
+        /// </summary>
+        /// <param name="customerId"></param>
+        /// <returns> List CustomerGenre </returns>
+        public List<CustomerGenre> GetCustomerGenre(int customerId)
         {
-            throw new NotImplementedException();
+            List<CustomerGenre> genreList = new List<CustomerGenre>();
+            string sql = "SELECT Genre.Name, COUNT(Genre.Name) AS Amount FROM Invoice "+
+                "JOIN InvoiceLine ON Invoice.InvoiceId  = InvoiceLine.InvoiceId " +
+                "JOIN Track ON InvoiceLine.TrackId = Track.TrackId "+
+                "JOIN Genre ON Track.GenreId = Genre.GenreId "+
+                "WHERE CustomerId = @CustomerId "+
+                "GROUP BY Genre.Name "+
+                "ORDER BY Amount desc";
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(ConnectionHelper.GetConnectionString()))
+                {
+                    conn.Open();
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@CustomerId", customerId);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            
+                            while (reader.Read())
+                            {
+                                CustomerGenre temp = new CustomerGenre();
+                                temp.Name = reader.GetString(0);
+                                temp.Amount = reader.GetInt32(1);
+
+                                genreList.Add(temp);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+
+                Console.WriteLine(ex.Message);
+            }
+
+            List<CustomerGenre> topList = new List<CustomerGenre>();
+            int genreMax = 0;
+            foreach (CustomerGenre genre in genreList)
+            {
+                if (genre.Amount >= genreMax)
+                {
+                   topList.Add(genre);
+                    genreMax = genre.Amount;
+                }
+                else
+                    break;
+            }
+
+            return topList;
         }
 
+        /// <summary>
+        /// Returns a page of n customers with offset
+        /// </summary>
+        /// <param name="limit"></param>
+        /// <param name="offset"></param>
+        /// <returns> List Customer </returns>
         public List<Customer> GetCustomerPage(int limit, int offset)
         {
             List<Customer> customers = new List<Customer>();
@@ -305,9 +394,48 @@ namespace Assignment2.Repositories
             return customers;
         }
 
+        /// <summary>
+        /// Update a given customer by Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="customer"></param>
+        /// <returns> bool </returns>
+       
         public bool UpdateCustomer(int id, Customer customer)
         {
-            throw new NotImplementedException();
+            bool result = false;
+            string sql = "UPDATE Customer " +
+                "SET FirstName = @FirstName, LastName = @LastName, Country = @Country, PostalCode = @PostalCode, Phone = @Phone, EMail = @Email "+
+                "WHERE Customer.CustomerId = @customerId";
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(ConnectionHelper.GetConnectionString()))
+                {
+                    conn.Open();
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@FirstName", customer.FirstName);
+                        cmd.Parameters.AddWithValue("@LastName", customer.LastName);
+                        cmd.Parameters.AddWithValue("@Country", customer.Country);
+                        cmd.Parameters.AddWithValue("@PostalCode", customer.PostalCode);
+                        cmd.Parameters.AddWithValue("@Phone", customer.Phone);
+                        cmd.Parameters.AddWithValue("@Email", customer.Email);
+                        cmd.Parameters.AddWithValue("@customerId", id);
+
+                        result = cmd.ExecuteNonQuery() > 0 ? true : false;
+
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+
+                Console.WriteLine(ex.Message);
+
+            }
+            return result;
         }
     }
 }

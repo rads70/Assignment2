@@ -14,24 +14,49 @@ namespace Assignment2
 
           ICustomerRepository repository = new CustomerRepository();
 
-            // SelectAllCustomers(repository);
-            //GetCustomerPage(repository, 10, 10 );
+            // TestSelectAllCustomers(repository);
+            // TestGetCustomerById(repository, 3);
+            // TestGetCustomerByName(repository, "Lui");
+            // TestGetCustomerPage(repository, 10, 10 );
             // CustomerFull customer = new CustomerFull() { FirstName="Roberta", LastName="Ramos", Country="England", PostalCode="1234", Phone="123 123 123", Email="email@email.com"};
-            // AddCustomer(repository, customer);
-            //GetCustomerCountry(repository.GetAllCustomersCountry());
-            GetCustomerSpenders(repository.GetAllCustomersSpenders());  
+            // TestAddCustomer(repository, customer);
+            // TestGetCustomerCountry(repository.GetAllCustomersCountry());
+            // TestGetCustomerSpenders(repository.GetAllCustomersSpenders());
+            // TestGetCustomerGenre(repository, 12);
+            // TestUpdateCustomer(repository);
 
         }
-        static void AddCustomer ( ICustomerRepository repository, Customer customer)
+
+        private static void TestUpdateCustomer(ICustomerRepository repository )
+        {
+            Customer customer = repository.GetCustomer(1);
+            customer.FirstName = "Richard";
+            Console.WriteLine(repository.UpdateCustomer(customer.CustomerId, customer));
+        }
+
+        static void TestAddCustomer ( ICustomerRepository repository, Customer customer)
         {
             Console.WriteLine(repository.AddCustomer(customer));
         }
-        static void GetCustomerPage(ICustomerRepository repository, int offset, int limit)
+
+        static void TestGetCustomerPage(ICustomerRepository repository, int offset, int limit)
         {
             PrintCustomers(repository.GetCustomerPage(limit, offset));
         }
 
-       static void GetCustomerSpenders(List<CustomerSpender> spenders)
+        static void TestGetCustomerGenre(ICustomerRepository repository, int customerId)
+        {
+            List<CustomerGenre> genres = repository.GetCustomerGenre(customerId);
+          
+            foreach (CustomerGenre genre in genres)
+            {
+                  Console.WriteLine($"{genre.Name} - {genre.Amount}");
+            }
+
+
+        }
+
+       static void TestGetCustomerSpenders(List<CustomerSpender> spenders)
         {
             foreach (CustomerSpender spender in spenders)
             {
@@ -39,7 +64,7 @@ namespace Assignment2
             }
         }
 
-        static void GetCustomerCountry(List<CustomerCountry> countries)
+        static void TestGetCustomerCountry(List<CustomerCountry> countries)
 
         {
             Console.WriteLine("Country \t Amount");
@@ -48,17 +73,18 @@ namespace Assignment2
                 Console.WriteLine($"{country.Country} \t {country.Amount}");
             }
         }
-        static void SelectAllCustomers(ICustomerRepository repository)
+        static void TestSelectAllCustomers(ICustomerRepository repository)
         {
             PrintCustomers(repository.GetAllCustomers());
         }
 
-        static void GetCustomerById (ICustomerRepository repository, int id)
+        static void TestGetCustomerById (ICustomerRepository repository, int id)
         {
             PrintCustomer(repository.GetCustomer(id));
+
         }
 
-        static void GetCustomerByName(ICustomerRepository repository, string firstName)
+        static void TestGetCustomerByName(ICustomerRepository repository, string firstName)
         {
             PrintCustomer(repository.GetCustomerByName(firstName));
         }
